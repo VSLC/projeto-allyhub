@@ -3,8 +3,48 @@ import Label from './components/Label';
 import Button from './components/Button'
 
 import styled from 'styled-components';
+import Select from 'react-select';
+import { useState, useEffect } from 'react';
+
+import axios from 'axios';
+import e from 'cors';
 
 const App = () => {
+    const [countries, setCountries] = useState({});
+    const [cities, setCities] = useState({})
+    const [getCountries, setGetCountries] = useState([])
+    const [getCities, setGetCities] = useState([])
+
+    console.log("countries", countries);
+    console.log("cities", cities);
+
+
+    useEffect(() => {
+        const countriesGet = axios.get('https://amazon-api.sellead.com/country');
+        const optionsCountries = countriesGet.then((response) => setGetCountries(response.data)).catch((error) => { console.log(error) });
+    }, []);
+
+    useEffect(() => {
+        const citiesGet = axios.get('https://amazon-api.sellead.com/city');
+        const optionsCountries = citiesGet.then((response) => setGetCities(response.data)).catch((error) => { console.log(error) });
+    }, []);
+
+    console.log("getCitiesList", getCities);
+
+    const optionsCountry = getCountries.map((e) => {
+        return {
+            value: e.name_ptbr,
+            label: e.name_ptbr
+        }
+    })
+
+    const optionsCities = getCities.map((e) => {
+        return {
+            value: e.name,
+            label: e.name
+        }
+    })
+
     return (
         <>
             <Container>
@@ -25,17 +65,9 @@ const App = () => {
                         </FormContainer>
                     </FormDiv>
                     <FormDiv>
-                        <FormContainerIcon>
-                            <Title>Destino de interesse</Title>
-                            <div>
-                                <Input />
-                                <ion-icon name="arrow-down-outline"></ion-icon>
-                            </div>
-                            <div>
-                                <Input />
-                                <ion-icon name="arrow-down-outline"></ion-icon>
-                            </div>
-                        </FormContainerIcon>
+                        <Title>Destino de interesse</Title>
+                        <Select className='multi-select' isMulti options={optionsCountry} onChange={(element) => setCountries(element)} />
+                        <Select className='multi-select' isMulti options={optionsCities} onChange={(element) => setCities(element)} />
                     </FormDiv>
                 </ContainerContent>
                 <Button />
@@ -90,6 +122,10 @@ const FormDiv = styled.div`
             margin-top: 5px;
             margin-bottom: 20px;
         }
+    }
+    .multi-select{
+        width: 300px;
+        margin-top: 20px;
     }
 `
 
