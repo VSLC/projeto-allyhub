@@ -1,19 +1,20 @@
-import Input from './components/Input';
 import Label from './components/Label';
-import Button from './components/Button'
 
 import styled from 'styled-components';
 import Select from 'react-select';
 import { useState, useEffect } from 'react';
 
 import axios from 'axios';
-import e from 'cors';
 
 const App = () => {
-    const [countries, setCountries] = useState({});
-    const [cities, setCities] = useState({})
+    const [countries, setCountries] = useState([]);
+    const [cities, setCities] = useState([])
     const [getCountries, setGetCountries] = useState([])
     const [getCities, setGetCities] = useState([])
+    const [name, setName] = useState('')
+    const [email, setEmail] = useState('')
+    const [phone, setPhone] = useState('')
+    const [cpf, setCpf] = useState('')
 
     console.log("countries", countries);
     console.log("cities", cities);
@@ -29,21 +30,31 @@ const App = () => {
         const optionsCountries = citiesGet.then((response) => setGetCities(response.data)).catch((error) => { console.log(error) });
     }, []);
 
-    console.log("getCitiesList", getCities);
+    console.log(getCountries, 'countries');
+    console.log(getCities, 'cities');
 
     const optionsCountry = getCountries.map((e) => {
         return {
             value: e.name_ptbr,
-            label: e.name_ptbr
+            label: e.name_ptbr,
+            countryCode: e.code
         }
     })
 
-    const optionsCities = getCities.map((e) => {
+    const countriesCode = countries.map((element) => element.countryCode);
+    console.log(countriesCode, "countriesCode");
+
+    const optionsCities = getCities.filter((element) => countriesCode.includes(element.country_code)).map((e) => {
         return {
             value: e.name,
             label: e.name
         }
-    })
+    });
+
+    const handleSubmit = () => {
+        const formObject = { name: name, email: email, phone: phone, cpf: cpf, countries: countries, cities: cities };
+        console.log(formObject);
+    }
 
     return (
         <>
@@ -54,23 +65,23 @@ const App = () => {
                             <Title>Dados Pessoais</Title>
                             <form>
                                 <Label title="name" />
-                                <Input />
+                                <InputForm onChange={(e) => setName(e.target.value)} required></InputForm>
                                 <Label title="email" />
-                                <Input />
-                                <Label title="telefone" />
-                                <Input />
+                                <InputForm onChange={(e) => setEmail(e.target.value)} required></InputForm>
+                                <Label title="phone" />
+                                <InputForm onChange={(e) => setPhone(e.target.value)} required></InputForm>
                                 <Label title="cpf" />
-                                <Input />
+                                <InputForm onChange={(e) => setCpf(e.target.value)} required></InputForm>
                             </form>
                         </FormContainer>
                     </FormDiv>
                     <FormDiv>
                         <Title>Destino de interesse</Title>
-                        <Select className='multi-select' isMulti options={optionsCountry} onChange={(element) => setCountries(element)} />
-                        <Select className='multi-select' isMulti options={optionsCities} onChange={(element) => setCities(element)} />
+                        <Select className='multi-select' isMulti options={optionsCountry} onChange={(element) => setCountries(element)} required />
+                        <Select className='multi-select' isMulti options={optionsCities} onChange={(element) => setCities(element)} required />
                     </FormDiv>
                 </ContainerContent>
-                <Button />
+                <ButtonSend onClick={handleSubmit}>Enviar</ButtonSend>
             </Container>
         </>
     );
@@ -151,3 +162,21 @@ const FormContainerIcon = styled.div`
     }
 
 `;
+
+
+const InputForm = styled.input`
+    height: 25px;
+    width: 300px;
+    margin-bottom: 20px;
+
+`
+
+const ButtonSend = styled.button`
+    cursor:pointer;
+    background-color: #fff;
+    box-shadow: 5px 5px #000;
+    width: 100px;
+    height: 50px;
+    border: 2px solid #000;
+    border-radius: 2px;
+`
