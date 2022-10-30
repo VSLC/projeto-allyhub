@@ -8,18 +8,21 @@ import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 
-
 import axios from 'axios';
+
+import { mask, unMask } from 'remask'
 
 const App = () => {
     const [countries, setCountries] = useState([]);
-    const [cities, setCities] = useState([])
-    const [getCountries, setGetCountries] = useState([])
-    const [getCities, setGetCities] = useState([])
-    const [name, setName] = useState('')
-    const [email, setEmail] = useState('')
-    const [phone, setPhone] = useState('')
-    const [cpf, setCpf] = useState('')
+    const [cities, setCities] = useState([]);
+    const [getCountries, setGetCountries] = useState([]);
+    const [getCities, setGetCities] = useState([]);
+    const [name, setName] = useState('');
+    const [email, setEmail] = useState('');
+    const [phone, setPhone] = useState('');
+    const [cpf, setCpf] = useState('');
+    const [isValid, setIsValid] = useState(false);
+    console.log(isValid, "isValid initial")
 
     const schema = yup.object().shape({
         name: yup.string().min(2).required(),
@@ -28,13 +31,9 @@ const App = () => {
         cpf: yup.string().min(11).max(11).required()
     });
 
-    const { register, handleSubmit, formState: { errors } } = useForm({
+    const { register, handleSubmit, setValue, formState: { errors } } = useForm({
         resolver: yupResolver(schema)
     })
-
-    console.log("countries", countries);
-    console.log("cities", cities);
-
 
     useEffect(() => {
         const countriesGet = axios.get('https://amazon-api.sellead.com/country');
@@ -58,6 +57,11 @@ const App = () => {
     const countriesCode = countries.map((element) => element.countryCode);
     console.log(countriesCode, "countriesCode");
 
+
+    useEffect(() => {
+        setIsValid(cities.length !== 0 ? true : false);
+    }, [cities])
+
     const optionsCities = getCities.filter((element) => countriesCode.includes(element.country_code)).map((e) => {
         return {
             value: e.name,
@@ -69,6 +73,8 @@ const App = () => {
         const object = { ...data, countries: countries, cities: cities }
         console.log(object);
     };
+
+    console.log(isValid, "is valid")
 
     return (
         <>
@@ -88,7 +94,7 @@ const App = () => {
                                 <p>{errors.email?.message}</p>
 
                                 <Label title="phone" />
-                                <InputForm onChange={(e) => setPhone(e.target.value)} name="phone" {...register("phone")}></InputForm>
+                                <InputForm onChange={(e) => setPhone(mask(unMask(e.target.value), '(31) 9 9999-9999'))} name="phone" {...register("phone")}></InputForm>
                                 <p>{errors.phone?.message}</p>
 
                                 <Label title="cpf" />
@@ -99,12 +105,12 @@ const App = () => {
                         </FormDiv>
                         <FormDiv>
                             <Title>Destino de interesse</Title>
-                            <Select className='multi-select' isMulti options={optionsCountry} onChange={(element) => setCountries(element)} required />
-                            <Select className='multi-select' isMulti options={optionsCities} onChange={(element) => setCities(element)} required />
+                            <Select className='multi-select' isMulti options={optionsCountry} onChange={(element) => setCountries(element)} />
+                            <Select className='multi-select' isMulti options={optionsCities} onChange={(element) => setCities(element)} />
                         </FormDiv>
                     </ContainerContent>
                     <div className='button'>
-                        <ButtonSend type="submit">Enviar</ButtonSend>
+                        <ButtonSend disabled={!isValid} type="submit">Enviar</ButtonSend>
                     </div>
                 </form>
             </Container>
