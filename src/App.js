@@ -3,6 +3,11 @@ import Label from './components/Label';
 import styled from 'styled-components';
 import Select from 'react-select';
 import { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as yup from 'yup';
+
 
 import axios from 'axios';
 
@@ -15,6 +20,17 @@ const App = () => {
     const [email, setEmail] = useState('')
     const [phone, setPhone] = useState('')
     const [cpf, setCpf] = useState('')
+
+    const schema = yup.object().shape({
+        name: yup.string().min(2).required(),
+        email: yup.string().email().required(),
+        phone: yup.string().min(10).max(11).required(),
+        cpf: yup.string().min(11).max(11).required()
+    });
+
+    const { register, handleSubmit, formState: { errors } } = useForm({
+        resolver: yupResolver(schema)
+    })
 
     console.log("countries", countries);
     console.log("cities", cities);
@@ -30,8 +46,6 @@ const App = () => {
         const optionsCountries = citiesGet.then((response) => setGetCities(response.data)).catch((error) => { console.log(error) });
     }, []);
 
-    console.log(getCountries, 'countries');
-    console.log(getCities, 'cities');
 
     const optionsCountry = getCountries.map((e) => {
         return {
@@ -51,37 +65,48 @@ const App = () => {
         }
     });
 
-    const handleSubmit = () => {
-        const formObject = { name: name, email: email, phone: phone, cpf: cpf, countries: countries, cities: cities };
-        console.log(formObject);
-    }
+    const onSubmit = (data, event) => {
+        const object = { ...data, countries: countries, cities: cities }
+        console.log(object);
+    };
 
     return (
         <>
             <Container>
-                <ContainerContent>
-                    <FormDiv>
-                        <FormContainer>
-                            <Title>Dados Pessoais</Title>
-                            <form>
+                <form onSubmit={handleSubmit(onSubmit)}>
+                    <ContainerContent>
+                        <FormDiv>
+                            <FormContainer>
+                                <Title>Dados Pessoais</Title>
+
                                 <Label title="name" />
-                                <InputForm onChange={(e) => setName(e.target.value)} required></InputForm>
+                                <InputForm onChange={(e) => setName(e.target.value)} name="name" {...register("name")}></InputForm>
+                                <p>{errors.name?.message}</p>
+
                                 <Label title="email" />
-                                <InputForm onChange={(e) => setEmail(e.target.value)} required></InputForm>
+                                <InputForm onChange={(e) => setEmail(e.target.value)} name="email" {...register("email")}></InputForm>
+                                <p>{errors.email?.message}</p>
+
                                 <Label title="phone" />
-                                <InputForm onChange={(e) => setPhone(e.target.value)} required></InputForm>
+                                <InputForm onChange={(e) => setPhone(e.target.value)} name="phone" {...register("phone")}></InputForm>
+                                <p>{errors.phone?.message}</p>
+
                                 <Label title="cpf" />
-                                <InputForm onChange={(e) => setCpf(e.target.value)} required></InputForm>
-                            </form>
-                        </FormContainer>
-                    </FormDiv>
-                    <FormDiv>
-                        <Title>Destino de interesse</Title>
-                        <Select className='multi-select' isMulti options={optionsCountry} onChange={(element) => setCountries(element)} required />
-                        <Select className='multi-select' isMulti options={optionsCities} onChange={(element) => setCities(element)} required />
-                    </FormDiv>
-                </ContainerContent>
-                <ButtonSend onClick={handleSubmit}>Enviar</ButtonSend>
+                                <InputForm onChange={(e) => setCpf(e.target.value)} name="cpf" {...register("cpf")}></InputForm>
+                                <p>{errors.cpf?.message}</p>
+
+                            </FormContainer>
+                        </FormDiv>
+                        <FormDiv>
+                            <Title>Destino de interesse</Title>
+                            <Select className='multi-select' isMulti options={optionsCountry} onChange={(element) => setCountries(element)} required />
+                            <Select className='multi-select' isMulti options={optionsCities} onChange={(element) => setCities(element)} required />
+                        </FormDiv>
+                    </ContainerContent>
+                    <div className='button'>
+                        <ButtonSend type="submit">Enviar</ButtonSend>
+                    </div>
+                </form>
             </Container>
         </>
     );
@@ -99,6 +124,10 @@ const Container = styled.div`
     background-color:#fff;
     width: 100vw;
     height: 100vh;
+    .button{
+        display: flex;
+        justify-content: center;
+        }
 `;
 
 const ContainerContent = styled.div`
@@ -144,24 +173,13 @@ const FormContainer = styled.div`
     display: flex;
     flex-direction: column;
     width: 300px;
+    p{
+        color: red;
+        font-size: 15px;
+        margin-top: -10px;
+    }
 `;
 
-const FormContainerIcon = styled.div`
-    display: flex;
-    flex-direction: column;
-    div {
-        position: relative;
-    }
-    ion-icon{
-        cursor:pointer;
-        margin-top: 5px;
-        font-size: 20px;
-        position:absolute;
-        right: 10px;
-        top: 0px;
-    }
-
-`;
 
 
 const InputForm = styled.input`
@@ -179,4 +197,5 @@ const ButtonSend = styled.button`
     height: 50px;
     border: 2px solid #000;
     border-radius: 2px;
+    margin-top: 20px;
 `
